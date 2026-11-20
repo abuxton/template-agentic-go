@@ -1,0 +1,18 @@
+.env
+.env.*
+!.env.example
+
+/bin/
+/dist/
+/coverage/
+/tmp/
+/node_modules/
+
+# Skills are installed locally by the consumer from skills-lock.json.
+.agents/skills/
+.claude/skills/
+.codex/skills/
+
+.DS_Store
+.idea/
+.vscode/
