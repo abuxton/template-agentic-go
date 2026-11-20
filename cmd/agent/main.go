@@ -4,7 +4,9 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"os/signal"
 	"strings"
+	"syscall"
 
 	"github.com/abuxton/template-agentic-go/internal/agent"
 )
@@ -26,7 +28,10 @@ func main() {
 		os.Exit(1)
 	}
 
-	response, err := client.Complete(context.Background(), strings.Join(os.Args[1:], " "))
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	response, err := client.Complete(ctx, strings.Join(os.Args[1:], " "))
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "agent request failed: %v\n", err)
 		os.Exit(1)

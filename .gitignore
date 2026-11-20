@@ -12,6 +12,8 @@
 .agents/skills/
 .claude/skills/
 .codex/skills/
+.claude/commands/opsx/
+.codex/commands/opsx/
 
 .DS_Store
 .idea/

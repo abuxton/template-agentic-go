@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
+	"time"
 )
 
 type Provider string
@@ -17,10 +19,15 @@ const (
 )
 
 type Config struct {
-	Provider Provider
-	Model    string
-	APIKey   string
-	BaseURL  string
+	Provider   Provider
+	Model      string
+	APIKey     string
+	BaseURL    string
+	HTTPClient HTTPDoer
+}
+
+type HTTPDoer interface {
+	Do(*http.Request) (*http.Response, error)
 }
 
 func ConfigFromEnvironment() (Config, error) {
@@ -67,7 +74,7 @@ func ConfigFromEnvironment() (Config, error) {
 
 type Client struct {
 	config     Config
-	httpClient *http.Client
+	httpClient HTTPDoer
 }
 
 func NewClient(config Config) (*Client, error) {
@@ -83,10 +90,19 @@ func NewClient(config Config) (*Client, error) {
 	if config.BaseURL == "" {
 		return nil, errors.New("agent base URL is required")
 	}
+	parsedURL, err := url.Parse(config.BaseURL)
+	if err != nil || (parsedURL.Scheme != "http" && parsedURL.Scheme != "https") || parsedURL.Host == "" {
+		return nil, errors.New("agent base URL must be an absolute HTTP or HTTPS URL")
+	}
+
+	httpClient := config.HTTPClient
+	if httpClient == nil {
+		httpClient = &http.Client{Timeout: 60 * time.Second}
+	}
 
 	return &Client{
 		config:     config,
-		httpClient: http.DefaultClient,
+		httpClient: httpClient,
 	}, nil
 }
 
