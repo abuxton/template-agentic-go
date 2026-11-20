@@ -1,0 +1,36 @@
+{
+  "name": "template-agentic-go",
+  "image": "mcr.microsoft.com/devcontainers/go:1-1.27-bookworm",
+  "features": {
+    "ghcr.io/devcontainers-extra/features/task:1": {},
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "lts"
+    }
+  },
+  "containerEnv": {
+    "GOTOOLCHAIN": "local"
+  },
+  "remoteUser": "vscode",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "golang.go",
+        "task.vscode-task",
+        "github.copilot",
+        "github.copilot-chat",
+        "anthropic.claude-code",
+        "openai.chatgpt"
+      ],
+      "settings": {
+        "go.toolsManagement.autoUpdate": true,
+        "go.useLanguageServer": true,
+        "go.lintOnSave": "package",
+        "go.testFlags": [
+          "-count=1"
+        ],
+        "task.autoDetect": "on"
+      }
+    }
+  },
+  "postCreateCommand": "go mod download"
+}

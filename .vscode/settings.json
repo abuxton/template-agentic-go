@@ -1,0 +1,11 @@
+{
+  "files.eol": "\n",
+  "files.trimTrailingWhitespace": true,
+  "go.toolsManagement.autoUpdate": true,
+  "go.useLanguageServer": true,
+  "go.lintOnSave": "package",
+  "go.testFlags": [
+    "-count=1"
+  ],
+  "task.autoDetect": "on"
+}

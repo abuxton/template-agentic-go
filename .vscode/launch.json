@@ -1,0 +1,23 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Debug agent",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/agent",
+      "args": [
+        "${input:agentPrompt}"
+      ],
+      "envFile": "${workspaceFolder}/.env"
+    }
+  ],
+  "inputs": [
+    {
+      "id": "agentPrompt",
+      "type": "promptString",
+      "description": "Prompt to send to the agent"
+    }
+  ]
+}

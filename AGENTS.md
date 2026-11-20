@@ -1,43 +1,146 @@
-# Agentic Go Workspace
+# AGENTS.md
 
-This repository is a spec-driven Go workspace for building small, testable agent systems.
+## Project overview
 
-## Development loop
+This repository is a reusable, spec-driven Go starter for small agentic
+applications. It contains:
 
-1. If OpenSpec has not been initialized, follow `docs/openspec.md`; then start with `openspec new change <name>`.
-2. Capture intent in `proposal.md`, behavior in `specs/`, decisions in `design.md`, and implementation work in `tasks.md`.
-3. Implement only the tasks described by the active change.
-4. Run `task quality` or, for the complete local CI workflow, `task ci`.
-5. Validate the change with `openspec validate <name>` and archive it with `openspec archive <name>`.
+- `cmd/agent`: the example CLI entrypoint.
+- `internal/agent`: provider configuration and standard-library HTTP adapters
+  for Claude and OpenAI.
+- `docs/`: OpenSpec initialization and agent workflow guidance.
+- `Taskfile.yml`: the local development and CI command surface.
 
-OpenSpec command integrations are intentionally not included in the template. Follow `docs/openspec.md` to initialize Claude Code and/or Codex locally. Skill payloads are not committed; use the root `skills-lock.json` with `npx skills experimental_install --frozen-lockfile` to restore consumer-selected skills locally. Keep provider-specific behavior behind `internal/agent.Client`.
+The current implementation performs provider-neutral text completion only.
+Tool calling, delegation, persistence, and autonomous side effects are not
+implemented capabilities.
 
-## Available project skills
+## Development environment
 
-The lockfile pins the project skills used by this template:
+The preferred environment is the checked-in VS Code dev container:
 
-- Go code style, testing, security, and linting
-- General secure-by-default guidance
-- GitHub Actions hardening
-- Taskfile workflow guidance
+1. Open the repository in VS Code.
+2. Select **Reopen in Container**.
+3. Run `task --list`.
 
-Restore them with `npx skills experimental_install --frozen-lockfile`. Treat installed skills as guidance, verify their recommendations against this repository, and never commit their generated payloads.
+The container provides Go 1.27, Task, and Node/npm for OpenSpec and skills.
+The checked-in `.vscode/` configuration recommends Go, Task, GitHub Copilot,
+Claude Code, and OpenAI extensions. Credentials must still be supplied through
+the normal local or extension authentication flows.
 
-## Provider configuration
+For a host setup, install Go 1.27 or newer, Task, Node.js/npm, Git, and
+OpenSpec. Copy the environment template before running the CLI:
 
-Copy `.env.example` to `.env` and set `AGENT_PROVIDER`, `AGENT_MODEL`, and the matching provider API key. Never commit `.env` or credentials. The sample CLI supports `claude` and `openai`.
+```sh
+cp .env.example .env
+```
 
-## Go conventions
+Never commit `.env`, API keys, or generated skill payloads.
 
-- Prefer concrete types and explicit error handling.
-- Wrap errors with operation context using `%w`.
-- Keep packages small and interfaces at the point of use.
-- Use table-driven tests and `httptest` for provider boundaries.
-- Do not add a provider SDK when the standard HTTP client is sufficient.
-- Keep provider requests bounded by context, client timeouts, response-size limits, and retry policies.
+## Agent and specification workflow
 
-## Agent safety
+Use OpenSpec for non-trivial behavior changes:
 
-Agent tools must be allowlisted, fail closed, and auditable before they are exposed to production workflows. Keep destructive or external side effects behind explicit approval boundaries.
+1. If OpenSpec is not initialized, follow `docs/openspec.md`.
+2. Create a change with `openspec new change <change-name>`.
+3. Read the active proposal, requirements, design, and tasks before editing.
+4. Implement only the agreed tasks and update task checkboxes.
+5. Validate with `openspec validate <change-name>`.
+6. Archive completed work with `openspec archive <change-name>`.
 
-The current implementation supports text completion through Claude and OpenAI only. Tool calling, delegation, persistence, and autonomous side effects require a new OpenSpec capability with scenarios, governance controls, tests, and an audit design.
+OpenSpec command integrations and generated specifications are intentionally
+not part of this template. Consumers initialize them locally. Restore the
+locked project skills with:
+
+```sh
+npx skills experimental_install --frozen-lockfile
+```
+
+Only `skills-lock.json` belongs in version control. Do not commit `.agents/skills`,
+`.claude/skills`, or `.codex/skills` payloads.
+
+## Common commands
+
+Run `task --list` for the complete list. The primary commands are:
+
+```sh
+task test       # go test ./...
+task test-race  # race-enabled tests
+task vet        # go vet ./...
+task format     # fail if files need gofmt
+task lint       # pinned golangci-lint
+task vuln       # pinned govulncheck
+task quality    # tests, race, vet, format, lint, vulnerability scan
+task build      # writes bin/agent
+task ci         # quality checks followed by build
+```
+
+Run the example CLI with a prompt:
+
+```sh
+PROMPT="Summarize this project." task run
+```
+
+`task run` loads `.env` and requires `AGENT_PROVIDER`, `AGENT_MODEL`, and the
+matching `ANTHROPIC_API_KEY` or `OPENAI_API_KEY`.
+
+## Testing and validation
+
+Tests live beside the package they exercise, for example
+`internal/agent/client_test.go`. Use table-driven tests and `httptest` for
+provider HTTP boundaries. Add focused tests for new behavior and preserve
+context cancellation, response limits, provider error handling, and retry
+behavior.
+
+Before completing a code change, run:
+
+```sh
+task quality
+task ci
+```
+
+For documentation-only changes, run at least `git diff --check`. CI runs
+`task ci` on pushes and pull requests with read-only repository permissions.
+
+## Code style and architecture
+
+- Use standard-library Go unless a dependency provides clear value.
+- Keep provider-specific behavior behind `internal/agent.Client`.
+- Prefer concrete types, explicit validation, and contextual `%w` error
+  wrapping.
+- Use Go naming conventions: `ID`, `URL`, and `HTTP`, not `Id`, `Url`, or
+  `Http`.
+- Keep interfaces at the point of use; inject HTTP clients for testability.
+- Run `gofmt`; `task format` enforces formatting.
+- Bound external calls with context cancellation, client timeouts, response
+  size limits, and bounded retries.
+- Do not silently fall back after invalid configuration or provider errors.
+
+The module path is `github.com/abuxton/template-agentic-go`. Template users
+should update it with `go mod edit -module ...` and then run `go mod tidy`.
+
+## Security and governance
+
+- Keep credentials in `.env` or the provider's supported secret store.
+- Do not log API keys, authorization headers, prompts containing secrets, or
+  complete provider error bodies.
+- Validate provider URLs and configuration before making requests.
+- Keep external or destructive agent actions allowlisted, fail-closed, and
+  auditable behind explicit approval boundaries.
+- Any new agent capability needs an OpenSpec change with scenarios,
+  governance controls, tests, and an audit design.
+- Review changes for accidental secrets, generated files, and skill payloads.
+
+## Pull requests and commits
+
+Keep changes focused and update documentation and OpenSpec artifacts when
+behavior changes. Before opening a pull request, run `task ci`, validate the
+active OpenSpec change, and inspect the complete diff.
+
+Use Conventional Commits with an imperative subject, for example:
+
+```text
+feat: add provider retry policy
+fix: reject empty agent prompts
+docs: clarify OpenSpec workflow
+```

@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "golang.go",
+    "task.vscode-task",
+    "github.copilot",
+    "github.copilot-chat",
+    "anthropic.claude-code",
+    "openai.chatgpt"
+  ]
+}

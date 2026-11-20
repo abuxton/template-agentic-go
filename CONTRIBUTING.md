@@ -8,8 +8,12 @@ Install:
 
 - Go 1.27 or newer
 - [Task](https://taskfile.dev/)
+- [Node.js](https://nodejs.org/) and npm
 - Git
 - OpenSpec
+
+Alternatively, open the repository in VS Code and choose **Reopen in
+Container**. The checked-in dev container provides Go, Task, and Node/npm.
 
 Clone the repository and inspect the available development commands:
 
